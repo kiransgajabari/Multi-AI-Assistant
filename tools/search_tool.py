@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-client = TavilyClient(api_key=os.getenv("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"))
+client = TavilyClient(api_key=os.getenv("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"))
 
 def search_web(query: str) -> str:
     results = client.search(query=query, max_results=3)
