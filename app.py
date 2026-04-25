@@ -5,6 +5,8 @@ from fpdf import FPDF
 import io
 import base64
 import urllib.parse
+import urllib.request
+import json
 
 load_dotenv()
 
@@ -236,7 +238,6 @@ with col1:
 
 # ─── FEATURE 3: PDF Generator (Formatted) ─────────────
 def generate_pdf(topic, report, template="Standard Report", language="English"):
-    """Generate PDF - fpdf2 2.8.x safe version with explicit XPos/YPos on every multi_cell."""
     from fpdf.enums import XPos, YPos
     NX, NY = XPos.LMARGIN, YPos.NEXT
 
@@ -259,7 +260,6 @@ def generate_pdf(topic, report, template="Standard Report", language="English"):
     pdf.set_auto_page_break(auto=True, margin=25)
     pdf.add_page()
 
-    # ── Header — shows only the research topic ────────
     pdf.set_fill_color(63, 81, 181)
     pdf.set_text_color(255, 255, 255)
     pdf.set_font("helvetica", style="B", size=15)
@@ -267,7 +267,6 @@ def generate_pdf(topic, report, template="Standard Report", language="English"):
     pdf.cell(0, 9, safe_title, new_x=NX, new_y=NY, fill=True, align="C")
     pdf.ln(4)
 
-    # ── Meta Line ─────────────────────────────────────
     pdf.set_font("helvetica", size=9)
     pdf.set_text_color(120, 120, 120)
     meta = clean(
@@ -279,7 +278,6 @@ def generate_pdf(topic, report, template="Standard Report", language="English"):
     pdf.line(20, pdf.get_y(), 190, pdf.get_y())
     pdf.ln(4)
 
-    # ── Report Body ───────────────────────────────────
     pdf.set_text_color(30, 30, 30)
     clean_report = clean(report)
     report_lines = [l for l in clean_report.split("\n") if not l.strip().startswith("<!--")]
@@ -317,7 +315,6 @@ def generate_pdf(topic, report, template="Standard Report", language="English"):
             pdf.set_font("helvetica", size=10)
             pdf.multi_cell(0, 6, line, new_x=NX, new_y=NY)
 
-    # ── Footer ────────────────────────────────────────
     pdf.set_y(-18)
     pdf.set_font("helvetica", style="I", size=8)
     pdf.set_text_color(160, 160, 160)
@@ -334,6 +331,186 @@ def show_agent_log(logs):
     with st.expander("🤖 Agent Activity Log", expanded=False):
         for log in logs:
             st.markdown(log)
+
+
+# ─── NEW FEATURE: Images, Videos, Audio ───────────────
+def show_media_tabs(topic):
+    """Show Images, Videos, and Audio tabs related to the research topic."""
+    st.divider()
+    st.markdown("### 🎨 Media Resources")
+    st.caption(f"Explore images, videos, and audio related to: **{topic}**")
+
+    tab_img, tab_vid, tab_audio = st.tabs(["🖼️ Images", "🎬 Videos", "🎵 Audio"])
+
+    encoded_topic = urllib.parse.quote(topic)
+
+    # ── Images Tab ────────────────────────────────────
+    with tab_img:
+        st.markdown("#### 🖼️ Related Images")
+        st.info("Click any link below to view images for your research topic.")
+
+        image_sources = [
+            {
+                "name": "🔍 Google Images",
+                "url": f"https://www.google.com/search?tbm=isch&q={encoded_topic}",
+                "desc": "Search millions of images on Google"
+            },
+            {
+                "name": "📸 Unsplash",
+                "url": f"https://unsplash.com/s/photos/{encoded_topic}",
+                "desc": "Free high-quality stock photos"
+            },
+            {
+                "name": "🖼️ Wikimedia Commons",
+                "url": f"https://commons.wikimedia.org/w/index.php?search={encoded_topic}",
+                "desc": "Free media from Wikipedia"
+            },
+            {
+                "name": "🎨 Flickr",
+                "url": f"https://www.flickr.com/search/?text={encoded_topic}",
+                "desc": "Creative commons images from Flickr"
+            },
+            {
+                "name": "🖼️ Pexels",
+                "url": f"https://www.pexels.com/search/{encoded_topic}/",
+                "desc": "Free stock photos and images"
+            },
+            {
+                "name": "🔬 NASA Images",
+                "url": f"https://images.nasa.gov/#/?q={encoded_topic}",
+                "desc": "NASA image library (great for science topics)"
+            },
+        ]
+
+        cols = st.columns(2)
+        for i, src in enumerate(image_sources):
+            with cols[i % 2]:
+                st.markdown(f"""
+                <div style="border:1px solid #ddd; border-radius:10px; padding:12px; margin:6px 0;
+                            background: {'#1e2130' if st.session_state.dark_mode else '#fff'};">
+                    <a href="{src['url']}" target="_blank" style="font-size:16px; font-weight:bold;
+                       text-decoration:none; color:#4f8ef7;">{src['name']}</a>
+                    <p style="margin:4px 0 0 0; font-size:13px;
+                       color:{'#aaa' if st.session_state.dark_mode else '#666'};">{src['desc']}</p>
+                </div>
+                """, unsafe_allow_html=True)
+
+        st.markdown("---")
+        st.markdown(f"🔗 **Quick Search:** [Google Images for '{topic}']"
+                    f"(https://www.google.com/search?tbm=isch&q={encoded_topic})")
+
+    # ── Videos Tab ────────────────────────────────────
+    with tab_vid:
+        st.markdown("#### 🎬 Related Videos")
+        st.info("Click any link below to watch videos related to your research topic.")
+
+        video_sources = [
+            {
+                "name": "▶️ YouTube",
+                "url": f"https://www.youtube.com/results?search_query={encoded_topic}",
+                "desc": "Search videos on YouTube"
+            },
+            {
+                "name": "🎓 YouTube EDU",
+                "url": f"https://www.youtube.com/results?search_query={encoded_topic}+explained+tutorial",
+                "desc": "Educational & tutorial videos"
+            },
+            {
+                "name": "📺 TED Talks",
+                "url": f"https://www.ted.com/search?q={encoded_topic}",
+                "desc": "Expert TED Talks on the topic"
+            },
+            {
+                "name": "🎬 Vimeo",
+                "url": f"https://vimeo.com/search?q={encoded_topic}",
+                "desc": "High-quality videos on Vimeo"
+            },
+            {
+                "name": "📰 Reuters Video",
+                "url": f"https://www.reuters.com/search/news?blob={encoded_topic}",
+                "desc": "News videos from Reuters"
+            },
+            {
+                "name": "🌐 Dailymotion",
+                "url": f"https://www.dailymotion.com/search/{encoded_topic}",
+                "desc": "Videos from Dailymotion"
+            },
+        ]
+
+        cols = st.columns(2)
+        for i, src in enumerate(video_sources):
+            with cols[i % 2]:
+                st.markdown(f"""
+                <div style="border:1px solid #ddd; border-radius:10px; padding:12px; margin:6px 0;
+                            background: {'#1e2130' if st.session_state.dark_mode else '#fff'};">
+                    <a href="{src['url']}" target="_blank" style="font-size:16px; font-weight:bold;
+                       text-decoration:none; color:#e05252;">{src['name']}</a>
+                    <p style="margin:4px 0 0 0; font-size:13px;
+                       color:{'#aaa' if st.session_state.dark_mode else '#666'};">{src['desc']}</p>
+                </div>
+                """, unsafe_allow_html=True)
+
+        # Embed YouTube search shortcut
+        st.markdown("---")
+        st.markdown("#### 🎥 Watch on YouTube")
+        yt_embed_url = f"https://www.youtube.com/results?search_query={encoded_topic}"
+        st.markdown(f"[▶️ Open YouTube search for **'{topic}'**]({yt_embed_url})", unsafe_allow_html=False)
+
+    # ── Audio Tab ─────────────────────────────────────
+    with tab_audio:
+        st.markdown("#### 🎵 Related Audio & Podcasts")
+        st.info("Click any link below to find audio content and podcasts on your research topic.")
+
+        audio_sources = [
+            {
+                "name": "🎙️ Spotify Podcasts",
+                "url": f"https://open.spotify.com/search/{encoded_topic}/podcasts",
+                "desc": "Search podcasts on Spotify"
+            },
+            {
+                "name": "🎧 Google Podcasts",
+                "url": f"https://podcasts.google.com/search/{encoded_topic}",
+                "desc": "Find podcasts on Google Podcasts"
+            },
+            {
+                "name": "📻 BBC Sounds",
+                "url": f"https://www.bbc.co.uk/sounds/search?q={encoded_topic}",
+                "desc": "Audio & radio from BBC"
+            },
+            {
+                "name": "🎤 Apple Podcasts",
+                "url": f"https://podcasts.apple.com/search?term={encoded_topic}",
+                "desc": "Search Apple Podcasts"
+            },
+            {
+                "name": "📖 LibriVox",
+                "url": f"https://librivox.org/search?q={encoded_topic}&search_form=advanced",
+                "desc": "Free public domain audiobooks"
+            },
+            {
+                "name": "🌐 Internet Archive Audio",
+                "url": f"https://archive.org/search?query={encoded_topic}&and[]=mediatype%3A%22audio%22",
+                "desc": "Free audio from Internet Archive"
+            },
+        ]
+
+        cols = st.columns(2)
+        for i, src in enumerate(audio_sources):
+            with cols[i % 2]:
+                st.markdown(f"""
+                <div style="border:1px solid #ddd; border-radius:10px; padding:12px; margin:6px 0;
+                            background: {'#1e2130' if st.session_state.dark_mode else '#fff'};">
+                    <a href="{src['url']}" target="_blank" style="font-size:16px; font-weight:bold;
+                       text-decoration:none; color:#1db954;">{src['name']}</a>
+                    <p style="margin:4px 0 0 0; font-size:13px;
+                       color:{'#aaa' if st.session_state.dark_mode else '#666'};">{src['desc']}</p>
+                </div>
+                """, unsafe_allow_html=True)
+
+        st.markdown("---")
+        st.markdown(f"🎙️ **Quick Access:** [Search Spotify Podcasts for '{topic}']"
+                    f"(https://open.spotify.com/search/{encoded_topic}/podcasts)")
+
 
 # ─── Helper: Run research for one topic ───────────────
 def run_research(topic_input, language, template, max_queries):
@@ -364,7 +541,6 @@ def run_research(topic_input, language, template, max_queries):
         with st.status(f"🌐 Step 2.{i}: Searching: {query}", expanded=True) as status:
             results = search_web(query)
 
-            # FEATURE 2: Extract source URLs
             if isinstance(results, list):
                 for r in results:
                     if isinstance(r, dict) and r.get("url"):
@@ -477,6 +653,9 @@ if run_btn and (topic or (research_mode == "Compare Two Topics" and topic and to
                 mime="application/pdf"
             )
 
+        # ── NEW: Images, Videos, Audio Tabs ───────────
+        show_media_tabs(topic)
+
         # ── Save to History ────────────────────────────
         st.session_state.history.append({
             "topic": topic,
@@ -534,6 +713,15 @@ if run_btn and (topic or (research_mode == "Compare Two Topics" and topic and to
             st.download_button("📄 Download as PDF", data=pdf_data,
                                file_name="comparison_report.pdf", mime="application/pdf")
 
+        # ── Media tabs for both topics ─────────────────
+        st.divider()
+        st.markdown("### 🎨 Media Resources")
+        media_tab1, media_tab2 = st.tabs([f"🖼️ Media: {topic[:20]}", f"🖼️ Media: {topic2[:20]}"])
+        with media_tab1:
+            show_media_tabs(topic)
+        with media_tab2:
+            show_media_tabs(topic2)
+
 elif run_btn:
     st.warning("⚠️ Please enter a research topic first!")
 
@@ -582,4 +770,4 @@ Answer the question based on the report content. Be concise and helpful.
 
 # ─── Footer ────────────────────────────────────────────
 st.divider()
-st.markdown("Built with ❤️ using LangChain + Groq + Tavily + Streamlit")
+st.markdown("🌍 Making knowledge accessible to everyone, everywhere.")
