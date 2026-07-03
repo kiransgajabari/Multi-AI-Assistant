@@ -101,14 +101,20 @@ def get_level_prompt(level):
 
 def calculate_confidence(sources, summaries):
     score = 0
+    # Count sources
     if len(sources) >= 5: score += 40
     elif len(sources) >= 3: score += 25
     elif len(sources) >= 1: score += 10
+    # Content depth
     total_words = sum(len(s.split()) for s in summaries)
     if total_words > 500: score += 30
     elif total_words > 200: score += 20
     elif total_words > 50: score += 10
-    unique_domains = len(set(s.get("url","").split("/")[2] for s in sources if s.get("url")))
+    # Unique domains
+    unique_domains = len(set(
+        s.get("url","").replace("https://","").replace("http://","").split("/")[0]
+        for s in sources if s.get("url")
+    ))
     if unique_domains >= 3: score += 30
     elif unique_domains >= 2: score += 20
     elif unique_domains >= 1: score += 10

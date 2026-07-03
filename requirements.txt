@@ -6,3 +6,5 @@ tavily-python
 python-dotenv
 streamlit
 fpdf2
+PyPDF2
+groq

@@ -1,0 +1,14 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Run Streamlit",
+            "type": "shell",
+            "command": "D:\\DESKTOP\\Desktop\\Multi-AI-Assistant\\venv\\Scripts\\python.exe -m streamlit run D:\\DESKTOP\\Desktop\\Multi-AI-Assistant\\app.py",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        }
+    ]
+}

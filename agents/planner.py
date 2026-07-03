@@ -4,10 +4,11 @@ import os
 from dotenv import load_dotenv
 
 load_dotenv()
+load_dotenv(dotenv_path=".vscode/.env")
 
 llm = ChatGroq(
     model="llama-3.3-70b-versatile",
-    api_key=os.getenv("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")
+    api_key=os.getenv("GROQ_API_KEY")
 )
 
 def plan_research(topic: str) -> list:

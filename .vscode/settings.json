@@ -3,8 +3,7 @@
     "terminal.integrated.defaultProfile.windows": "Command Prompt",
     "terminal.integrated.profiles.windows": {
         "Command Prompt": {
-            "path": "cmd.exe",
-            "args": ["/K", "${workspaceFolder}\\venv\\Scripts\\activate.bat && streamlit run app.py"]
+            "path": "cmd.exe"
         }
     }
 }
