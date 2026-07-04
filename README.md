@@ -5,7 +5,7 @@ An AI-powered research assistant built with a 4-agent pipeline (Planner → Sear
 Live demo: https://multi-ai-assistant.streamlit.app
 
 <!-- Add a screenshot or demo GIF here once you have one -->
-![Demo](screenshot.png)
+![Demo](Screenshoot.png)
 
 Overview
 
