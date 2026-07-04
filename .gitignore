@@ -1,2 +1,6 @@
-".env" 
-".vscode/.env" 
+.env
+venv/
+__pycache__/
+*.pyc
+.vscode/.env
+.streamlit/secrets.toml
